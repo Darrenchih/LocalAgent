@@ -1,0 +1,7 @@
+LocalAgent — rights and publication notice
+
+No project-wide MIT or other open-source license has been established for this historical baseline. Copyright remains with the respective rights holders. Publication does not relicense any third-party work. Repository viewing and forking are subject to GitHub's applicable terms; no additional blanket redistribution or commercial-use permission is granted here.
+
+This repository contains the project's first-party source/configuration/tests and project icon assets supplied for this migration. Third-party dependency implementations, DLLs, model weights and private evidence are not vendored here. Dependency names, versions and lockfiles are references, not grants of rights. Third-party licenses apply when those dependencies are obtained or redistributed.
+
+Before distributing a compiled bundle, complete the component-specific license, attribution and source-obligation review described in docs/RELEASE.md. In particular, do not apply MIT to downloaded packages or historical binary payloads.

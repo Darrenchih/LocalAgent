@@ -1,0 +1,3 @@
+# Historical standalone launcher sources
+
+These six first-party Python files were separately present at the parent Agent directory. They are preserved for reference, not connected to the current LocalAgent APP and not enabled or executed by migration. They implement a Windows Job Object/process launcher and outbound status notification helper. The original local configuration, notification topic and runtime marker are private and deliberately excluded. No runnable configuration or live notification destination is supplied. Code retains its historical fixed root; this is not a portability or deployment claim. Do not run it against unreviewed commands. See the repository rights notice.

@@ -1,0 +1,18 @@
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import McpPanel from './McpPanel';
+import i18n from './i18n';
+const {invoke}=vi.hoisted(()=>({invoke:vi.fn()}));
+vi.mock('@tauri-apps/api/core',()=>({invoke}));
+vi.mock('@tauri-apps/plugin-dialog',()=>({open:vi.fn()}));
+const row={id:'fixture',name:'Inert fixture',executable:'C:\\fixture.exe',args:[],state:'disconnected',tools:[],error:null};
+beforeEach(async()=>{await i18n.changeLanguage('en');invoke.mockReset();invoke.mockImplementation(async(_cmd,{action})=>action==='health'?{version:'0.36.0',execution_enabled:false}:action==='list_servers'?[row]:{});});
+afterEach(()=>{cleanup();vi.restoreAllMocks();});
+it('shows genuine discovery readiness and incomplete formal runtime',async()=>{render(<McpPanel/>);expect(await screen.findByText('Inert fixture')).toBeInTheDocument();expect(screen.getByText(/Host\/Gate\/Broker/)).toBeInTheDocument();});
+it('connect requires visible app confirmation before the desktop command',async()=>{render(<McpPanel/>);await userEvent.click(await screen.findByRole('button',{name:'Connect'}));expect(await screen.findByRole('dialog',{name:'Confirm local program'})).toBeInTheDocument();expect(invoke.mock.calls.some(([,v])=>v.action==='connect')).toBe(false);await userEvent.click(screen.getByRole('button',{name:'Cancel'}));expect(screen.queryByRole('dialog')).toBeNull();await userEvent.click(screen.getByRole('button',{name:'Connect'}));await userEvent.click(screen.getByRole('button',{name:'Confirm and connect'}));await waitFor(()=>expect(invoke).toHaveBeenCalledWith('discovery_request',{action:'connect',params:{id:'fixture'}}));});
+it('renders server-controlled descriptions and schema as text',async()=>{invoke.mockImplementation(async(_cmd,{action})=>action==='health'?{version:'0.36.0'}:[{...row,state:'connected',tools:[{name:'inert',description:'<script>bad()</script>',inputSchema:{type:'object'}}]}]);render(<McpPanel/>);expect(await screen.findByText('<script>bad()</script>')).toBeInTheDocument();expect(document.querySelector('script')).toBeNull();expect(screen.getByText(/"type": "object"/)).toBeInTheDocument();});
+it('sanitizes backend errors rather than printing configuration secrets',async()=>{invoke.mockRejectedValue(new Error('SECRET-value'));render(<McpPanel/>);expect(await screen.findByRole('alert')).toBeInTheDocument();expect(screen.queryByText(/SECRET/)).toBeNull();});
+it('saves a server as validated executable plus argument array without connecting',async()=>{render(<McpPanel/>);await screen.findByText('Inert fixture');await userEvent.type(screen.getByLabelText('Server ID'),'local');await userEvent.type(screen.getByLabelText('Name'),'Local fixture');await userEvent.type(screen.getByLabelText('Absolute executable path'),'C:\\fixture.exe');await userEvent.click(screen.getByRole('button',{name:'Save'}));await waitFor(()=>expect(invoke).toHaveBeenCalledWith('discovery_request',{action:'save_server',params:{value:{id:'local',name:'Local fixture',executable:'C:\\fixture.exe',args:[]}}}));expect(invoke.mock.calls.some(([,value])=>value.action==='connect')).toBe(false);});
+
+it('shows a specific safe timeout reason for a failed server',async()=>{invoke.mockImplementation(async(_cmd,{action})=>action==='health'?{version:'0.36.0'}:[{...row,state:'error',error:'server_timeout'}]);render(<McpPanel/>);expect(await screen.findByText('Error')).toBeInTheDocument();expect(screen.getByText(/Server response or write timed out/)).toBeInTheDocument();});

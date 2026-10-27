@@ -1,0 +1,2 @@
+LocalAgent0.37.0 development candidate — informational notice, not a new license agreement.
+REVIEW-044S remains PARTIAL. The migration publishes source for recovery; the historical Frozen payload is not publicly cleared. No Installer acceptance is claimed. Ollama, model weights and WebView2 Runtime are separate. Native individual approval and Broker scope checks remain. See docs/RELEASE.md and LICENSE before redistribution.
